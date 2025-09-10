@@ -183,6 +183,7 @@ function install_and_run_cilium_cni_tests {
         --set=securityContext.capabilities.ciliumAgent="{CHOWN,KILL,NET_ADMIN,NET_RAW,IPC_LOCK,SYS_ADMIN,SYS_RESOURCE,DAC_OVERRIDE,FOWNER,SETGID,SETUID}" \
         --set=securityContext.capabilities.cleanCiliumState="{NET_ADMIN,SYS_ADMIN,SYS_RESOURCE}" \
         --set=cgroup.autoMount.enabled=false \
+        --set hubble.relay.enabled=true \
         --set=cgroup.hostRoot=/sys/fs/cgroup \
         --set=k8sServiceHost=localhost \
         --set=k8sServicePort=13336
@@ -197,6 +198,7 @@ function install_and_run_cilium_cni_tests {
         --set=securityContext.capabilities.ciliumAgent="{CHOWN,KILL,NET_ADMIN,NET_RAW,IPC_LOCK,SYS_ADMIN,SYS_RESOURCE,DAC_OVERRIDE,FOWNER,SETGID,SETUID}" \
         --set=securityContext.capabilities.cleanCiliumState="{NET_ADMIN,SYS_ADMIN,SYS_RESOURCE}" \
         --set=cgroup.autoMount.enabled=false \
+        --set hubble.relay.enabled=true \
         --set=cgroup.hostRoot=/sys/fs/cgroup
       ;;
   esac
@@ -208,7 +210,9 @@ function install_and_run_cilium_cni_tests {
 
   ${KUBECTL} create ns cilium-test-1
   ${KUBECTL} label ns cilium-test-1 pod-security.kubernetes.io/enforce=privileged
-
+  
+  # Cilium e2e test benefits from Hubble
+  ${CILIUM_CLI} hubble port-forward &
   # --external-target added, as default 'one.one.one.one' is buggy, and CloudFlare status is of course "all healthy"
   ${CILIUM_CLI} connectivity test --test-namespace cilium-test --external-target google.com --timeout=20m "${CILIUM_TEST_EXTRA_ARGS[@]}"; ${KUBECTL} delete ns cilium-test-1
 }
